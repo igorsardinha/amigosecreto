@@ -1,26 +1,41 @@
 @import "tailwindcss";
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
-}
-
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
+@theme {
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+body {
+  background:
+    radial-gradient(circle at 10% 0%, #fee2e2 0, transparent 40%),
+    radial-gradient(circle at 90% 100%, #dcfce7 0, transparent 40%),
+    #fffbf5;
+  color: #1c1917;
 }
 
-body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+@layer components {
+  .card {
+    @apply rounded-2xl border border-stone-200 bg-white/90 p-6 shadow-sm backdrop-blur;
+  }
+  .label {
+    @apply mb-1 block text-sm font-medium text-stone-700;
+  }
+  .input {
+    @apply w-full rounded-lg border border-stone-300 bg-white px-3 py-2 text-stone-900 outline-none transition focus:border-red-500 focus:ring-2 focus:ring-red-200;
+  }
+  .btn-primary {
+    @apply inline-flex items-center justify-center rounded-lg bg-red-700 px-4 py-2 font-semibold text-white transition hover:bg-red-800 disabled:cursor-not-allowed disabled:opacity-60;
+  }
+  .btn-secondary {
+    @apply inline-flex items-center justify-center rounded-lg border border-stone-300 bg-white px-3 py-2 text-sm font-medium text-stone-800 transition hover:bg-stone-50;
+  }
+  .btn-whatsapp {
+    @apply inline-flex items-center justify-center rounded-lg bg-green-600 px-3 py-2 text-sm font-medium text-white transition hover:bg-green-700;
+  }
+  .btn-danger {
+    @apply rounded-md px-2 py-1 text-sm text-red-700 transition hover:bg-red-50;
+  }
+  .chip {
+    @apply inline-flex items-center gap-1 rounded-full bg-stone-100 px-3 py-1 text-xs font-medium text-stone-700;
+  }
 }
