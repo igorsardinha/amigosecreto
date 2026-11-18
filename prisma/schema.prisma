@@ -1,0 +1,45 @@
+// Schema de DESENVOLVIMENTO (SQLite).
+// Mantenha os models idênticos aos de prisma/postgres/schema.prisma.
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model Group {
+  id           String        @id @default(cuid())
+  name         String
+  description  String?
+  budget       String?
+  eventDate    DateTime?
+  inviteCode   String        @unique
+  hostToken    String        @unique
+  hostName     String
+  hostEmail    String?
+  status       String        @default("OPEN") // OPEN | DRAWN
+  drawnAt      DateTime?
+  createdAt    DateTime      @default(now())
+  participants Participant[]
+}
+
+model Participant {
+  id           String       @id @default(cuid())
+  groupId      String
+  group        Group        @relation(fields: [groupId], references: [id], onDelete: Cascade)
+  name         String
+  email        String?
+  wishlist     String?
+  token        String       @unique
+  isHost       Boolean      @default(false)
+  assignedToId String?      @unique
+  assignedTo   Participant? @relation("Assignment", fields: [assignedToId], references: [id], onDelete: SetNull)
+  assignedBy   Participant? @relation("Assignment")
+  viewedAt     DateTime?
+  createdAt    DateTime     @default(now())
+
+  @@index([groupId])
+}
