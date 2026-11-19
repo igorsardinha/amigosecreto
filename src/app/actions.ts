@@ -7,6 +7,7 @@ import { inviteCode, secretToken } from "@/lib/tokens";
 import { drawSecretFriends } from "@/lib/draw";
 import { sendDrawEmail } from "@/lib/email";
 import { field, getBaseUrl, isEmail, parseDateInput } from "@/lib/utils";
+import { setAdminSession, clearAdminSession, isAuthenticated } from "@/lib/admin-auth";
 
 export type FormState = { error?: string; success?: string } | undefined;
 
@@ -193,4 +194,35 @@ export async function drawGroup(_: FormState, form: FormData): Promise<FormState
         ? `Sorteio realizado! ${sent} e-mail(s) enviado(s).`
         : "Sorteio realizado! Envie a cada participante o link pessoal dele.",
   };
+}
+
+// ---------------------------------------------------------------------------
+// Superadmin: Login e Logout
+// ---------------------------------------------------------------------------
+export async function loginSuperadmin(_: FormState, form: FormData): Promise<FormState> {
+  const secret = field(form, "secret", 100);
+  const ok = await setAdminSession(secret);
+  if (!ok) {
+    return { error: "Senha de administrador incorreta." };
+  }
+  redirect("/superadmin");
+}
+
+export async function logoutSuperadmin(): Promise<void> {
+  await clearAdminSession();
+  redirect("/superadmin");
+}
+
+// ---------------------------------------------------------------------------
+// Superadmin: Excluir grupo
+// ---------------------------------------------------------------------------
+export async function deleteGroupSuperadmin(form: FormData): Promise<void> {
+  const isAuth = await isAuthenticated();
+  if (!isAuth) return;
+
+  const groupId = field(form, "groupId", 60);
+  if (!groupId) return;
+
+  await db.group.delete({ where: { id: groupId } });
+  revalidatePath("/superadmin");
 }
