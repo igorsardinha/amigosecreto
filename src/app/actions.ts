@@ -448,3 +448,48 @@ export async function recoverLinks(
 
   return { links: found };
 }
+
+// ---------------------------------------------------------------------------
+// Atualizar / Vincular e-mail de participante
+// ---------------------------------------------------------------------------
+export async function updateParticipantEmail(
+  _: FormState,
+  form: FormData
+): Promise<FormState> {
+  const participantId = field(form, "participantId", 60);
+  const hostToken = field(form, "hostToken", 60);
+  const email = field(form, "email", 120).trim();
+
+  if (!participantId) return { error: "Participante não informado." };
+  if (email && !isEmail(email)) return { error: "E-mail inválido." };
+
+  // Validação de permissão: ou é superadmin autenticado ou possui o hostToken do grupo
+  const isSuper = await isAuthenticated();
+  let allowed = isSuper;
+
+  if (!allowed && hostToken) {
+    const group = await db.group.findUnique({ where: { hostToken } });
+    const participant = await db.participant.findUnique({
+      where: { id: participantId },
+    });
+    if (group && participant && participant.groupId === group.id) {
+      allowed = true;
+    }
+  }
+
+  if (!allowed) {
+    return { error: "Não autorizado a atualizar este participante." };
+  }
+
+  await db.participant.update({
+    where: { id: participantId },
+    data: { email: email || null },
+  });
+
+  if (hostToken) {
+    revalidatePath(`/admin/${hostToken}`);
+  }
+  revalidatePath("/superadmin");
+
+  return { success: email ? "E-mail vinculado com sucesso!" : "E-mail removido!" };
+}

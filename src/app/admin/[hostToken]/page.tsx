@@ -10,6 +10,7 @@ import { CopyButton, ShareLink } from "@/components/copy-button";
 import { DrawForm } from "./draw-form";
 import { SubmitButton } from "@/components/submit-button";
 import { SaveLinkTracker } from "@/components/save-link-tracker";
+import { AdminParticipantsList } from "./participants-list";
 
 export const metadata: Metadata = {
   title: "Painel do anfitrião — Amigo Secreto",
@@ -107,46 +108,12 @@ export default async function AdminPage({
             {viewed} de {group.participants.length} já viram quem tiraram.
           </p>
         )}
-        {group.participants.length === 0 ? (
-          <p className="text-sm text-stone-500">Ninguém se inscreveu ainda.</p>
-        ) : (
-          <ul className="divide-y divide-stone-100">
-            {group.participants.map((p) => (
-              <li key={p.id} className="flex items-center justify-between gap-2 py-2">
-                <div className="min-w-0">
-                  <p className="truncate font-medium">
-                    {p.name} {p.isHost && <span className="text-xs text-stone-500">(você)</span>}
-                  </p>
-                  <p className="truncate text-xs text-stone-500">
-                    {p.email ?? "sem e-mail"}
-                    {!isOpen && (p.viewedAt ? " · ✅ já viu" : " · ainda não viu")}
-                  </p>
-                </div>
-                <div className="flex shrink-0 items-center gap-1">
-                  <CopyButton
-                    text={`${base}/p/${p.token}`}
-                    label="Link pessoal"
-                    className="btn-secondary px-2 py-1 text-xs"
-                  />
-                  {isOpen && (
-                    <form action={removeParticipant}>
-                      <input type="hidden" name="hostToken" value={hostToken} />
-                      <input type="hidden" name="participantId" value={p.id} />
-                      <SubmitButton
-                        variant="btn-danger"
-                        pendingText="…"
-                        ariaLabel={`Remover ${p.name}`}
-                        confirmMessage={`Remover ${p.name} do amigo secreto?`}
-                      >
-                        Remover
-                      </SubmitButton>
-                    </form>
-                  )}
-                </div>
-              </li>
-            ))}
-          </ul>
-        )}
+        <AdminParticipantsList
+          participants={group.participants}
+          hostToken={hostToken}
+          baseUrl={base}
+          isOpen={isOpen}
+        />
         <p className="text-xs text-stone-500">
           Use &quot;Link pessoal&quot; para reenviar o link a quem perdeu. Para manter a surpresa,
           não abra o link de outra pessoa.

@@ -5,6 +5,7 @@ import { CopyButton } from "@/components/copy-button";
 import { SubmitButton } from "@/components/submit-button";
 import { deleteGroupSuperadmin, deleteParticipantSuperadmin } from "@/app/actions";
 import { MoveParticipantModal } from "./move-modal";
+import { EditEmailModal } from "@/components/edit-email-modal";
 
 interface ParticipantItem {
   id: string;
@@ -42,6 +43,7 @@ interface GroupCardProps {
 export function GroupCard({ group, baseUrl, allGroups }: GroupCardProps) {
   const [showAllLinks, setShowAllLinks] = useState(false);
   const [movingParticipant, setMovingParticipant] = useState<ParticipantItem | null>(null);
+  const [editingEmail, setEditingEmail] = useState<ParticipantItem | null>(null);
   const inviteUrl = `${baseUrl}/g/${group.inviteCode}`;
   const hostAdminUrl = `${baseUrl}/admin/${group.hostToken}`;
   const isOpen = group.status === "OPEN";
@@ -170,6 +172,14 @@ export function GroupCard({ group, baseUrl, allGroups }: GroupCardProps) {
                     <div className="flex items-center gap-1.5">
                       <button
                         type="button"
+                        onClick={() => setEditingEmail(p)}
+                        className="btn-secondary px-2 py-0.5 text-xs text-stone-700 hover:border-red-400 hover:text-red-700"
+                        title="Vincular ou alterar e-mail"
+                      >
+                        ✉ E-mail
+                      </button>
+                      <button
+                        type="button"
                         onClick={() => setMovingParticipant(p)}
                         className="btn-secondary px-2 py-0.5 text-xs text-stone-700 hover:border-red-400 hover:text-red-700"
                         title="Mover para outro grupo"
@@ -223,6 +233,15 @@ export function GroupCard({ group, baseUrl, allGroups }: GroupCardProps) {
           currentGroupId={group.id}
           availableGroups={allGroups}
           onClose={() => setMovingParticipant(null)}
+        />
+      )}
+
+      {editingEmail && (
+        <EditEmailModal
+          participantId={editingEmail.id}
+          participantName={editingEmail.name}
+          currentEmail={editingEmail.email}
+          onClose={() => setEditingEmail(null)}
         />
       )}
     </div>
