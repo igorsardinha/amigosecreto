@@ -1,8 +1,11 @@
 import { CreateGroupForm } from "./create-group-form";
+import { RecoverBanner } from "@/components/recover-banner";
 
 export default function Home() {
   return (
     <div className="space-y-6">
+      <RecoverBanner />
+
       <section className="py-4 text-center">
         <h1 className="text-3xl font-extrabold tracking-tight text-stone-900 sm:text-4xl">
           Sorteie seu <span className="text-red-700">amigo secreto</span> online

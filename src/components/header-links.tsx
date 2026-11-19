@@ -80,9 +80,9 @@ export function HeaderLinks() {
       <button
         type="button"
         onClick={() => setShowRecover(true)}
-        className="text-xs font-medium text-stone-600 hover:text-red-700 hover:underline"
+        className="btn-secondary text-xs px-3 py-1.5 font-semibold text-stone-700 shadow-xs hover:border-red-400 hover:text-red-700"
       >
-        Esqueci meu link
+        🔍 Esqueci meu link
       </button>
 
       {showRecover && <RecoverModal onClose={() => setShowRecover(false)} />}
