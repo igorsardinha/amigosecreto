@@ -228,6 +228,31 @@ export async function deleteGroupSuperadmin(form: FormData): Promise<void> {
 }
 
 // ---------------------------------------------------------------------------
+// Superadmin: Excluir participante
+// ---------------------------------------------------------------------------
+export async function deleteParticipantSuperadmin(form: FormData): Promise<void> {
+  const isAuth = await isAuthenticated();
+  if (!isAuth) return;
+
+  const participantId = field(form, "participantId", 60);
+  if (!participantId) return;
+
+  await db.$transaction(async (tx) => {
+    // Desvincula quem porventura tirou essa pessoa
+    await tx.participant.updateMany({
+      where: { assignedToId: participantId },
+      data: { assignedToId: null },
+    });
+
+    await tx.participant.delete({
+      where: { id: participantId },
+    });
+  });
+
+  revalidatePath("/superadmin");
+}
+
+// ---------------------------------------------------------------------------
 // Superadmin: Mover participante para outro grupo
 // ---------------------------------------------------------------------------
 export async function moveParticipantSuperadmin(

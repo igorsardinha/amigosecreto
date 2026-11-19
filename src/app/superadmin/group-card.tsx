@@ -2,6 +2,8 @@
 
 import { useState } from "react";
 import { CopyButton } from "@/components/copy-button";
+import { SubmitButton } from "@/components/submit-button";
+import { deleteGroupSuperadmin, deleteParticipantSuperadmin } from "@/app/actions";
 import { MoveParticipantModal } from "./move-modal";
 
 interface ParticipantItem {
@@ -84,6 +86,17 @@ export function GroupCard({ group, baseUrl, allGroups }: GroupCardProps) {
           >
             Abrir Painel ↗
           </a>
+          <form action={deleteGroupSuperadmin}>
+            <input type="hidden" name="groupId" value={group.id} />
+            <SubmitButton
+              variant="btn-danger"
+              pendingText="Excluindo..."
+              confirmMessage={`ATENÇÃO: Deseja realmente excluir o amigo secreto "${group.name}" e todos os seus participantes? Esta ação é irreversível.`}
+              className="text-xs px-2 py-1 border border-red-200"
+            >
+              Excluir Grupo 🗑
+            </SubmitButton>
+          </form>
         </div>
       </div>
 
@@ -176,6 +189,18 @@ export function GroupCard({ group, baseUrl, allGroups }: GroupCardProps) {
                       >
                         Abrir ↗
                       </a>
+                      <form action={deleteParticipantSuperadmin}>
+                        <input type="hidden" name="participantId" value={p.id} />
+                        <SubmitButton
+                          variant="btn-danger"
+                          pendingText="…"
+                          confirmMessage={`Remover "${p.name}" deste amigo secreto?`}
+                          className="px-1.5 py-0.5 text-xs"
+                          ariaLabel={`Excluir ${p.name}`}
+                        >
+                          ✕
+                        </SubmitButton>
+                      </form>
                     </div>
                   </div>
 
