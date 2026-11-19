@@ -6,6 +6,7 @@ import { GroupInfo } from "@/components/ui";
 import { ShareLink } from "@/components/copy-button";
 import { Reveal } from "./reveal";
 import { WishlistForm } from "./wishlist-form";
+import { SaveLinkTracker } from "@/components/save-link-tracker";
 
 export const metadata: Metadata = {
   title: "Meu amigo secreto",
@@ -39,6 +40,12 @@ export default async function ParticipantPage({
 
   return (
     <div className="space-y-6">
+      <SaveLinkTracker
+        type="participant"
+        name={me.name}
+        groupName={group.name}
+        url={myUrl}
+      />
       {novo && (
         <section className="card border-amber-300 bg-amber-50">
           <h2 className="font-bold text-amber-900">✅ Inscrição confirmada!</h2>

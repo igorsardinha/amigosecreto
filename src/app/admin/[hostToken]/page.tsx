@@ -9,6 +9,7 @@ import { GroupInfo } from "@/components/ui";
 import { CopyButton, ShareLink } from "@/components/copy-button";
 import { DrawForm } from "./draw-form";
 import { SubmitButton } from "@/components/submit-button";
+import { SaveLinkTracker } from "@/components/save-link-tracker";
 
 export const metadata: Metadata = {
   title: "Painel do anfitrião — Amigo Secreto",
@@ -37,6 +38,12 @@ export default async function AdminPage({
 
   return (
     <div className="space-y-6">
+      <SaveLinkTracker
+        type="host"
+        name={group.hostName}
+        groupName={group.name}
+        url={adminUrl}
+      />
       {novo && (
         <section className="card border-amber-300 bg-amber-50">
           <h2 className="font-bold text-amber-900">🎉 Amigo secreto criado!</h2>

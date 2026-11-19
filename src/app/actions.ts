@@ -333,3 +333,118 @@ export async function moveParticipantSuperadmin(
     success: `"${participant.name}" foi movido com sucesso para "${targetGroup.name}"!`,
   };
 }
+
+// ---------------------------------------------------------------------------
+// Recuperar link ("Esqueci meu link")
+// ---------------------------------------------------------------------------
+export type RecoverResult = {
+  error?: string;
+  links?: {
+    type: "participant" | "host";
+    groupName: string;
+    personName: string;
+    url: string;
+    status: string;
+  }[];
+};
+
+export async function recoverLinks(
+  _: RecoverResult | undefined,
+  form: FormData
+): Promise<RecoverResult> {
+  const name = field(form, "name", 60).trim();
+  const email = field(form, "email", 120).trim();
+
+  if (!name && !email) {
+    return { error: "Preencha seu nome ou e-mail para localizar seu amigo secreto." };
+  }
+
+  const baseUrl = await getBaseUrl();
+  const found: {
+    type: "participant" | "host";
+    groupName: string;
+    personName: string;
+    url: string;
+    status: string;
+  }[] = [];
+
+  // 1. Busca como participante
+  const participants = await db.participant.findMany({
+    where: {
+      AND: [
+        name
+          ? {
+              name: {
+                contains: name,
+              },
+            }
+          : {},
+        email
+          ? {
+              email: {
+                equals: email,
+              },
+            }
+          : {},
+      ],
+    },
+    include: { group: true },
+    take: 10,
+  });
+
+  for (const p of participants) {
+    found.push({
+      type: "participant",
+      groupName: p.group.name,
+      personName: p.name,
+      url: `${baseUrl}/p/${p.token}`,
+      status: p.group.status === "OPEN" ? "Inscrições abertas" : "Sorteado",
+    });
+  }
+
+  // 2. Busca como anfitrião (caso tenha criado o grupo)
+  const hostGroups = await db.group.findMany({
+    where: {
+      AND: [
+        name
+          ? {
+              hostName: {
+                contains: name,
+              },
+            }
+          : {},
+        email
+          ? {
+              hostEmail: {
+                equals: email,
+              },
+            }
+          : {},
+      ],
+    },
+    take: 5,
+  });
+
+  for (const g of hostGroups) {
+    const adminUrl = `${baseUrl}/admin/${g.hostToken}`;
+    // Evita duplicar se a mesma URL já estiver presente
+    if (!found.some((f) => f.url === adminUrl)) {
+      found.push({
+        type: "host",
+        groupName: g.name,
+        personName: `${g.hostName} (Painel do Anfitrião)`,
+        url: adminUrl,
+        status: g.status === "OPEN" ? "Inscrições abertas" : "Sorteado",
+      });
+    }
+  }
+
+  if (found.length === 0) {
+    return {
+      error:
+        "Nenhum amigo secreto encontrado com os dados informados. Verifique a grafia do nome ou e-mail.",
+    };
+  }
+
+  return { links: found };
+}
