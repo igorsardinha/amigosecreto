@@ -226,3 +226,85 @@ export async function deleteGroupSuperadmin(form: FormData): Promise<void> {
   await db.group.delete({ where: { id: groupId } });
   revalidatePath("/superadmin");
 }
+
+// ---------------------------------------------------------------------------
+// Superadmin: Mover participante para outro grupo
+// ---------------------------------------------------------------------------
+export async function moveParticipantSuperadmin(
+  _: FormState,
+  form: FormData
+): Promise<FormState> {
+  const isAuth = await isAuthenticated();
+  if (!isAuth) return { error: "Não autorizado." };
+
+  const participantId = field(form, "participantId", 60);
+  const targetGroupId = field(form, "targetGroupId", 60);
+
+  if (!participantId || !targetGroupId) {
+    return { error: "Participante e grupo de destino são obrigatórios." };
+  }
+
+  const participant = await db.participant.findUnique({
+    where: { id: participantId },
+    include: { group: true },
+  });
+  if (!participant) return { error: "Participante não encontrado." };
+
+  const targetGroup = await db.group.findUnique({
+    where: { id: targetGroupId },
+    include: {
+      participants: { select: { id: true, name: true } },
+    },
+  });
+  if (!targetGroup) return { error: "Grupo de destino não encontrado." };
+
+  if (targetGroup.id === participant.groupId) {
+    return { error: "O participante já pertence a este grupo." };
+  }
+
+  if (targetGroup.status !== "OPEN") {
+    return {
+      error:
+        "O grupo de destino já foi sorteado. Só é possível mover para grupos com inscrições abertas.",
+    };
+  }
+
+  if (targetGroup.participants.length >= MAX_PARTICIPANTS) {
+    return { error: "O grupo de destino atingiu o limite de participantes." };
+  }
+
+  const normalized = participant.name.toLocaleLowerCase("pt-BR");
+  if (
+    targetGroup.participants.some(
+      (p) => p.name.toLocaleLowerCase("pt-BR") === normalized
+    )
+  ) {
+    return {
+      error: `Já existe um participante com o nome "${participant.name}" no grupo de destino.`,
+    };
+  }
+
+  // Se o grupo de origem já havia sido sorteado, desfaz o vínculo de sorteio dele
+  await db.$transaction(async (tx) => {
+    // Se alguém tirou esse participante no grupo antigo, desvincula
+    await tx.participant.updateMany({
+      where: { assignedToId: participant.id },
+      data: { assignedToId: null },
+    });
+
+    // Move para o novo grupo e zera o assignedToId
+    await tx.participant.update({
+      where: { id: participant.id },
+      data: {
+        groupId: targetGroup.id,
+        isHost: false, // não é host no novo grupo
+        assignedToId: null,
+      },
+    });
+  });
+
+  revalidatePath("/superadmin");
+  return {
+    success: `"${participant.name}" foi movido com sucesso para "${targetGroup.name}"!`,
+  };
+}

@@ -43,6 +43,12 @@ export default async function SuperadminPage() {
   const totalParticipants = groups.reduce((acc, g) => acc + g.participants.length, 0);
   const totalDrawn = groups.filter((g) => g.status === "DRAWN").length;
 
+  const allGroupOptions = groups.map((g) => ({
+    id: g.id,
+    name: g.name,
+    status: g.status,
+  }));
+
   return (
     <div className="space-y-6">
       {/* Barra superior de estatísticas e Logout */}
@@ -101,6 +107,7 @@ export default async function SuperadminPage() {
               <GroupCard
                 key={group.id}
                 baseUrl={baseUrl}
+                allGroups={allGroupOptions}
                 group={{
                   id: group.id,
                   name: group.name,

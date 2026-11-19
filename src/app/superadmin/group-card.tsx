@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { CopyButton } from "@/components/copy-button";
+import { MoveParticipantModal } from "./move-modal";
 
 interface ParticipantItem {
   id: string;
@@ -13,8 +14,15 @@ interface ParticipantItem {
   assignedToName?: string | null;
 }
 
+interface TargetGroupOption {
+  id: string;
+  name: string;
+  status: string;
+}
+
 interface GroupCardProps {
   baseUrl: string;
+  allGroups: TargetGroupOption[];
   group: {
     id: string;
     name: string;
@@ -29,8 +37,9 @@ interface GroupCardProps {
   };
 }
 
-export function GroupCard({ group, baseUrl }: GroupCardProps) {
+export function GroupCard({ group, baseUrl, allGroups }: GroupCardProps) {
   const [showAllLinks, setShowAllLinks] = useState(false);
+  const [movingParticipant, setMovingParticipant] = useState<ParticipantItem | null>(null);
   const inviteUrl = `${baseUrl}/g/${group.inviteCode}`;
   const hostAdminUrl = `${baseUrl}/admin/${group.hostToken}`;
   const isOpen = group.status === "OPEN";
@@ -146,6 +155,14 @@ export function GroupCard({ group, baseUrl }: GroupCardProps) {
                     </div>
 
                     <div className="flex items-center gap-1.5">
+                      <button
+                        type="button"
+                        onClick={() => setMovingParticipant(p)}
+                        className="btn-secondary px-2 py-0.5 text-xs text-stone-700 hover:border-red-400 hover:text-red-700"
+                        title="Mover para outro grupo"
+                      >
+                        Mover ⇄
+                      </button>
                       <CopyButton
                         text={personalUrl}
                         label="Copiar Link"
@@ -173,6 +190,16 @@ export function GroupCard({ group, baseUrl }: GroupCardProps) {
           </div>
         )}
       </div>
+
+      {movingParticipant && (
+        <MoveParticipantModal
+          participantId={movingParticipant.id}
+          participantName={movingParticipant.name}
+          currentGroupId={group.id}
+          availableGroups={allGroups}
+          onClose={() => setMovingParticipant(null)}
+        />
+      )}
     </div>
   );
 }
